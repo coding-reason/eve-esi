@@ -26,6 +26,7 @@ export class ItemsService {
   public DodixieOrders: IOrderL[];
   public RensOrders: IOrderL[];
   public HekOrders: IOrderL[];
+  public itSortedCategories: Array<ICategory>;
 
   public graphicUri: string;
   constructor(private http: HttpClient){
@@ -38,6 +39,7 @@ export class ItemsService {
     this.ordersUri = "https://esi.evetech.net/latest/markets/";
 // https://esi.evetech.net/latest/markets/10000042/orders/?datasource=tranquility&order_type=sell&page=1&type_id=36
     this.sinkPrice = new Subject<IOrderSub>();
+    this.itSortedCategories = new Array<ICategory>();
   }
 
 

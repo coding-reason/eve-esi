@@ -11,6 +11,7 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { MPipePipe } from './pipes/m-pipe.pipe';
 import {FormsModule} from '@angular/forms';
 import {HttpClientModule} from '@angular/common/http';
+import {TreeviewComponent} from './treeview/treeview.component';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import {HttpClientModule} from '@angular/common/http';
     TimersComponent,
     DevelopComponent,
     NavbarComponent,
+    TreeviewComponent,
     MPipePipe
   ],
   imports: [

@@ -6,6 +6,7 @@ import {
 import {ISortPattern, priSort} from "../Patterns/prioritySort";
 // import {jsonpCallbackContext} from "@angular/common/http/src/module";
 import {Subject} from 'rxjs';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: "app-items-by-group",
@@ -46,7 +47,6 @@ export class ItemsByGroupComponent implements OnInit {
     this.displayPriceList = new Array<ITradeItemPrice>();
     this.tradeItemPriceList = new Array<ITradeItemPrice>();
     this.selItemTypes = new Array<IType>();
-
     this.orders = new Array<IOrder>();
     this.hubs = new Array<IHub>();
     let hub = new cHub();
@@ -68,7 +68,7 @@ export class ItemsByGroupComponent implements OnInit {
     hub = new cHub();
     hub.name = "Hek"; hub.regionId = 10000042; hub.stationId = 60005686;
     this.hubs.push(hub);
-    this.sortedCategories = new Array<ICategory>();
+
     this.categoryPattern = new Array<ISortPattern>();
     this.categoryPattern.push( { name: "Accessories", index: 1});
     this.categoryPattern.push( { name: "Ship", index: 4});
@@ -84,7 +84,46 @@ export class ItemsByGroupComponent implements OnInit {
 
 
   }
+  ngOnInit() {
 
+    this.sortedCategories = this.is.itSortedCategories;
+    const types = localStorage.getItem("SelEveItems");
+
+    this.is.sinkPrice.subscribe(oSub => {
+      this.getLowestPrice(this.currentType, oSub.regionId, this.bb, oSub.orderL);
+    });
+
+    this.selItemTypes = JSON.parse(types);
+    if (this.finishedPriceLoad == null) {
+      this.finishedPriceLoad = new Subject<ITradeItemPrice>();
+    }
+
+    this.finishedPriceLoad.subscribe(tp => {
+      this.tradeItemPriceList.push(tp);
+    });
+    console.log("get categories");
+    if (!this.is.itSortedCategories || this.is.itSortedCategories.length === 0) {
+      this.is.getCategories().subscribe(x => {
+        if (x != null)
+          this.is.categoryNumbers = x.splice(",");
+        this.test = this.is.categoryNumbers[0];
+        let cnt = 0;
+        for (const r of this.is.categoryNumbers) {
+          this.is.getCategoryContent(r.toString()).subscribe(ret => {
+            if (ret.published) {
+              this.addCategory(ret);
+            }
+            cnt++;
+            if (cnt === this.is.categoryNumbers.length)
+              this.sortCategories();
+          });
+        }
+
+      });
+    }
+
+
+  }
   public getLowestPrice(type: IType, regionId: number, b: ITradeItemPrice, orders: IOrderL[]): void {
     let retval  = NaN;
     for (let i = 0; i < orders.length; i++) {
@@ -163,7 +202,7 @@ export class ItemsByGroupComponent implements OnInit {
     }
   }
 
-  onRemoveItem( item: ITradeItemPrice) :void {
+  onRemoveItem( item: ITradeItemPrice): void {
     if (this.elementRef.nativeElement.alt === "bom") {
       // this.onGetBOM(item);
     }
@@ -246,8 +285,8 @@ export class ItemsByGroupComponent implements OnInit {
 
   sortCategories(): void{
     const ps = new priSort();
-    this.sortedCategories = ps.sort(this.categories, this.categoryPattern);
-
+    this.is.itSortedCategories = ps.sort(this.categories, this.categoryPattern);
+    this.sortedCategories = this.is.itSortedCategories;
   }
   private addCategory(c: ICategory): void{
     this.categories.push(c);
@@ -378,42 +417,6 @@ export class ItemsByGroupComponent implements OnInit {
     }
   }
 
-  ngOnInit() {
 
-    const types = localStorage.getItem("SelEveItems");
-
-    this.is.sinkPrice.subscribe(oSub => {
-      this.getLowestPrice(this.currentType, oSub.regionId, this.bb, oSub.orderL);
-    });
-
-    this.selItemTypes = JSON.parse(types);
-    if (this.finishedPriceLoad == null) {
-      this.finishedPriceLoad = new Subject<ITradeItemPrice>();
-    }
-
-    this.finishedPriceLoad.subscribe(tp => {
-      this.tradeItemPriceList.push(tp);
-    });
-    console.log("get categories");
-    this.is.getCategories().subscribe(x => {
-      if (x != null)
-        this.is.categoryNumbers = x.splice(",");
-      this.test = this.is.categoryNumbers[0];
-      let cnt = 0;
-      for (const r of this.is.categoryNumbers) {
-        this.is.getCategoryContent(r.toString()).subscribe(ret => {
-          if (ret.published) {
-            this.addCategory(ret);
-          }
-          cnt++;
-          if (cnt === this.is.categoryNumbers.length)
-            this.sortCategories();
-        });
-      }
-
-    });
-
-
-  }
 
 }
